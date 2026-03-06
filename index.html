@@ -9,207 +9,258 @@
 </head>
 
 <body>
-  <div class="app" id="app">
-    <header>
-      <div class="left-header">
-        <label class="btn btn-primary" for="jsonLoader">
-          <span>Load JSON</span>
-        </label>
-        <input type="file" id="jsonLoader" accept=".json" multiple />
-        <span style="font-size:0.78rem;color:var(--text-soft);">AMQ Song Player</span>
+  <div class="app-shell">
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <div class="top-bar-title">
+          AMQ Song Player
+        </div>
       </div>
-      <div class="right-header">
-        <button class="btn btn-icon" id="settingsToggle" title="Settings (Tab)">
-          ⚙ Settings
+      <div class="top-bar-right">
+        <button id="jsonLoaderBtn" class="btn btn-icon btn-ghost">
+          <span>Load JSON</span>
+        </button>
+        <input id="jsonFileInput" class="file-input" type="file" accept=".json,application/json" multiple />
+        <button id="settingsBtn" class="btn btn-icon btn-ghost" title="Settings (Tab)">
+          ⚙
         </button>
       </div>
-    </header>
+    </div>
 
-    <div class="main">
-      <section class="player-section">
-        <div class="song-counter" id="songCounter">0 / 0</div>
-        <div class="media-wrapper" id="mediaWrapper">
+    <div class="main-layout">
+      <div class="player-card">
+        <div class="song-counter">
+          <span id="songIndexDisplay">0</span>/<span id="songTotalDisplay">0</span>
+        </div>
+        <div class="player-media-shell" id="mediaShell">
           <div class="media-placeholder" id="mediaPlaceholder">
-            Load JSON to start playing.
+            <strong>No song loaded</strong>
           </div>
         </div>
 
-        <div class="song-info" id="songInfo">
+        <div class="song-info">
           <div class="anime-title-main" id="animeTitleMain">—</div>
           <div class="anime-title-sub" id="animeTitleSub"></div>
-          <div class="song-meta" id="songMeta"></div>
+
+          <div class="song-meta-line">
+            <span id="songNameLabel">Song: —</span>
+            <span id="songArtistLabel">Artist: —</span>
+          </div>
+
+          <div class="song-meta-secondary">
+            <span id="songTypeLabel">Type: —</span>
+            <span id="songSeasonLabel">Season: —</span>
+            <span id="songDiffLabel">Difficulty: —</span>
+            <span id="songComposerLabel">Composer: —</span>
+            <span id="songArrangerLabel">Arranger: —</span>
+          </div>
         </div>
 
         <div class="controls-row">
           <div class="controls-left">
-            <div class="index-input-wrapper">
-              <span>#</span>
-              <input type="number" id="songIndexInput" min="1" />
-            </div>
-            <button class="btn btn-icon" id="prevBtn" title="Previous (←)">
+            <input id="songIndexInput" class="song-index-input" type="number" min="1" placeholder="#" />
+            <button id="prevBtn" class="btn btn-icon btn-ghost" title="Previous (←)">
               ◀
             </button>
-            <button class="btn btn-icon" id="nextBtn" title="Next (→)">
+            <button id="nextBtn" class="btn btn-icon btn-ghost" title="Next (→)">
               ▶
             </button>
-            <button class="btn btn-icon" id="hideBtn" title="Hide entry (H)">
-              Hide Entry
+          </div>
+          <div class="controls-center">
+            <button id="repeatBtn" class="btn btn-icon btn-ghost toggle-btn" title="Repeat (R)">
+              Repeat
+            </button>
+            <button id="shuffleBtn" class="btn btn-icon btn-ghost toggle-btn" title="Shuffle (S)">
+              Shuffle
             </button>
           </div>
           <div class="controls-right">
-            <button class="btn btn-icon toggle-btn" id="repeatBtn" title="Repeat (R)">
-              <span>repeat</span>
+            <button id="likedBtn" class="btn btn-icon btn-ghost toggle-btn toggle-liked" title="Like (L)">
+              ❤
             </button>
-            <button class="btn btn-icon toggle-btn" id="shuffleBtn" title="Shuffle (S)">
-              <span>shuffle</span>
+            <button id="dislikedBtn" class="btn btn-icon btn-ghost toggle-btn toggle-disliked" title="Dislike (D)">
+              ✖
+            </button>
+            <button id="learnedBtn" class="btn btn-icon btn-ghost toggle-btn toggle-learned" title="Learned (K)">
+              ✓
             </button>
           </div>
         </div>
+      </div>
 
-        <section class="playlist-section">
-          <div class="playlist-header">
-            <div class="playlist-header-left">
-              <strong style="font-size:0.85rem;">Playlist</strong>
-              <span class="playlist-toggle" id="playlistToggle">(show/hide)</span>
-            </div>
-            <button class="btn btn-danger btn-icon" id="clearPlaylistBtn" title="Clear playlist">
-              Clear
+      <div class="playlist-card">
+        <div class="playlist-header">
+          <div class="playlist-tabs">
+            <button class="playlist-tab active" data-tab="all">Default</button>
+            <button class="playlist-tab" data-tab="liked">Liked</button>
+            <button class="playlist-tab" data-tab="disliked">Disliked</button>
+            <button class="playlist-tab" data-tab="learned">Learned</button>
+            <button class="playlist-tab" data-tab="notlearned">
+              Not yet learned
             </button>
           </div>
-          <div class="playlist-body" id="playlistBody">
-            <div class="playlist-list" id="playlistList"></div>
-            <div class="playlist-footer">
-              <div class="playlist-page-controls">
-                <button class="btn btn-icon" id="pagePrevBtn">◀</button>
-                <span id="pageInfo">0 / 0</span>
-                <button class="btn btn-icon" id="pageNextBtn">▶</button>
-                <div class="page-input-wrapper">
-                  <span>P</span>
-                  <input type="number" id="pageInput" min="1" />
-                </div>
-              </div>
-              <span id="playlistCountInfo"></span>
+          <button id="togglePlaylistBtn" class="btn btn-icon btn-ghost" title="Toggle playlist (P)">
+            ☰
+          </button>
+        </div>
+
+        <div id="playlistContainer" class="playlist-body hidden">
+          <div class="playlist-search-row">
+            <input id="playlistSearchInput" class="playlist-search-input" type="text"
+              placeholder="Search by anime, song, artist, annSongId…" />
+            <button id="clearPlaylistBtn" class="btn btn-ghost btn-icon" title="Clear playlist">
+              🗑
+            </button>
+          </div>
+
+          <div class="playlist-list" id="playlistList"></div>
+
+          <div class="playlist-footer">
+            <div class="playlist-pagination">
+              <button id="pagePrevBtn" class="btn btn-icon btn-ghost" title="Previous page">
+                ◀
+              </button>
+              <input id="pageInput" class="page-input" type="number" min="1" placeholder="Pg" />
+              <button id="pageNextBtn" class="btn btn-icon btn-ghost" title="Next page">
+                ▶
+              </button>
+              <span id="pageInfo">Page 0/0</span>
             </div>
           </div>
-        </section>
-      </section>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Settings Drawer -->
-    <aside class="settings-drawer" id="settingsDrawer">
-      <div class="settings-header">
-        <span>Settings</span>
-        <button class="btn btn-icon" id="settingsCloseBtn">✕ Close</button>
-      </div>
-      <div class="settings-body">
-        <!-- General -->
-        <div class="settings-section">
-          <h3>General</h3>
+  <div id="settingsDrawer" class="settings-drawer">
+    <div class="settings-header">
+      <div class="settings-title">Settings</div>
+      <button id="closeSettingsBtn" class="btn btn-icon btn-ghost" title="Close (Tab)">
+        ✕
+      </button>
+    </div>
+    <div class="settings-body">
+      <div class="settings-section">
+        <div class="settings-section-title">General</div>
 
+        <div class="settings-row">
           <div class="settings-label">Server</div>
-          <div class="pill-group" id="serverGroup">
-            <button class="pill" data-value="EU">EU</button>
-            <button class="pill" data-value="NAE">NA East</button>
-            <button class="pill" data-value="NAW">NA West</button>
-          </div>
-
-          <div class="settings-label" style="margin-top:8px;">Quality</div>
-          <div class="pill-group" id="qualityGroup">
-            <button class="pill" data-value="HQ">720p</button>
-            <button class="pill" data-value="MQ">480p</button>
-            <button class="pill" data-value="AUDIO">Audio</button>
-          </div>
-
-          <div class="settings-label" style="margin-top:8px;">Anime title preference</div>
-          <div class="pill-group" id="titlePrefGroup">
-            <button class="pill" data-value="romaji">Romaji</button>
-            <button class="pill" data-value="english">English</button>
-          </div>
+          <select id="serverSelect" class="settings-select">
+            <option value="eudist.animemusicquiz.com">EU</option>
+            <option value="naedist.animemusicquiz.com">NA East</option>
+            <option value="nawdist.animemusicquiz.com">NA West</option>
+          </select>
         </div>
 
-        <!-- Filters -->
-        <div class="settings-section">
-          <h3>Filters</h3>
-
-          <div class="settings-label">Song type</div>
-          <div class="pill-group" id="songTypeGroup">
-            <button class="pill" data-value="all">All</button>
-            <button class="pill" data-value="op">Openings</button>
-            <button class="pill" data-value="ed">Endings</button>
-            <button class="pill" data-value="ins">Inserts</button>
-          </div>
-
-          <div class="settings-label" style="margin-top:8px;">Missing media</div>
-          <div class="pill-group" id="missingMediaGroup">
-            <button class="pill" data-value="include">Include</button>
-            <button class="pill" data-value="exclude">Exclude</button>
-            <button class="pill" data-value="only">Only</button>
-          </div>
-
-          <div class="settings-label" style="margin-top:8px;">Dub</div>
-          <div class="pill-group" id="dubGroup">
-            <button class="pill" data-value="include">Include</button>
-            <button class="pill" data-value="exclude">Exclude</button>
-            <button class="pill" data-value="only">Only</button>
-          </div>
-
-          <div class="settings-label" style="margin-top:8px;">Rebroadcast</div>
-          <div class="pill-group" id="rebroadcastGroup">
-            <button class="pill" data-value="include">Include</button>
-            <button class="pill" data-value="exclude">Exclude</button>
-            <button class="pill" data-value="only">Only</button>
-          </div>
-
-          <div style="margin-top:10px;">
-            <div class="settings-label">Difficulty range</div>
-            <div class="settings-input-row">
-              <span>Min</span>
-              <input type="number" id="diffMinInput" />
-              <span>Max</span>
-              <input type="number" id="diffMaxInput" />
-            </div>
-          </div>
-
-          <div style="margin-top:10px;">
-            <div class="settings-label">Year range</div>
-            <div class="settings-input-row">
-              <span>Min</span>
-              <input type="number" id="yearMinInput" />
-              <span>Max</span>
-              <input type="number" id="yearMaxInput" />
-            </div>
-          </div>
-
-          <div style="margin-top:10px;">
-            <button class="btn btn-primary" id="applyRangeBtn">Apply</button>
-          </div>
+        <div class="settings-row">
+          <div class="settings-label">Quality</div>
+          <select id="qualitySelect" class="settings-select">
+            <option value="hq">720p</option>
+            <option value="mq">480p</option>
+            <option value="audio">Audio</option>
+          </select>
         </div>
 
-        <!-- Hidden entries -->
-        <div class="settings-section">
-          <h3>Hidden entries</h3>
-          <div class="hidden-list" id="hiddenList"></div>
-          <div style="margin-top:6px;display:flex;justify-content:flex-end;">
-            <button class="btn btn-danger btn-icon" id="clearHiddenBtn">Clear all</button>
-          </div>
-        </div>
-
-        <!-- Shortcuts -->
-        <div class="settings-section">
-          <h3>Shortcuts</h3>
-          <div class="shortcuts">
-            <div><span class="kbd">←</span>/<span class="kbd">→</span> Previous / Next song</div>
-            <div><span class="kbd">H</span> Hide entry</div>
-            <div><span class="kbd">R</span> Toggle repeat</div>
-            <div><span class="kbd">S</span> Toggle shuffle</div>
-            <div><span class="kbd">M</span> Mute / Unmute</div>
-            <div><span class="kbd">Space</span> Play / Pause</div>
-            <div><span class="kbd">P</span> Toggle playlist</div>
-            <div><span class="kbd">Tab</span> Toggle settings</div>
-          </div>
+        <div class="settings-row">
+          <div class="settings-label">Title</div>
+          <select id="namePrefSelect" class="settings-select">
+            <option value="romaji">Romaji</option>
+            <option value="english">English</option>
+          </select>
         </div>
       </div>
-    </aside>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Filters</div>
+
+        <div class="settings-row">
+          <div class="settings-label">Song type</div>
+          <select id="songTypeFilter" class="settings-select">
+            <option value="all">All</option>
+            <option value="opening">Opening</option>
+            <option value="ending">Ending</option>
+            <option value="insert">Insert</option>
+          </select>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-label">Missing media</div>
+          <select id="missingMediaFilter" class="settings-select">
+            <option value="include">Include</option>
+            <option value="exclude">Exclude</option>
+            <option value="only">Only</option>
+          </select>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-label">Dub</div>
+          <select id="dubFilter" class="settings-select">
+            <option value="include">Include</option>
+            <option value="exclude">Exclude</option>
+            <option value="only">Only</option>
+          </select>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-label">Rebroadcast</div>
+          <select id="rebroadcastFilter" class="settings-select">
+            <option value="include">Include</option>
+            <option value="exclude">Exclude</option>
+            <option value="only">Only</option>
+          </select>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-label">Difficulty range</div>
+          <div class="settings-input-range">
+            <input id="minDiffInput" class="settings-range-input" type="number" placeholder="0" />
+            <span>–</span>
+            <input id="maxDiffInput" class="settings-range-input" type="number" placeholder="100" />
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-label">Year range</div>
+          <div class="settings-input-range">
+            <input id="minYearInput" class="settings-range-input" type="number" placeholder="1924" />
+            <span>–</span>
+            <input id="maxYearInput" class="settings-range-input" type="number" placeholder="2026" />
+          </div>
+        </div>
+
+        <div class="settings-apply-row">
+          <button id="applyFiltersBtn" class="btn btn-primary">
+            Apply
+          </button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Export Liked / Disliked / Learned Ids</div>
+        <button id="exportBtn" class="btn btn-ghost" title="Export Liked, Disliked, Learned lists">
+          Export
+        </button>
+        <button id="importBtn" class="btn btn-ghost" title="Replace Liked, Disliked, Learned lists">
+          Import
+        </button>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Shortcuts</div>
+        <div class="shortcuts-text">
+          ← / →: Previous / Next song
+          R: Toggle repeat
+          S: Toggle shuffle
+          M: Mute / Unmute
+          Space: Play / Pause
+          P: Toggle playlist
+          Tab: Toggle settings
+          L: Like
+          D: Dislike
+          K: Toggle learned
+        </div>
+      </div>
+    </div>
   </div>
   <script src="./scripts/script.js"></script>
 </body>
