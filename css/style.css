@@ -756,8 +756,69 @@ audio {
     .settings-drawer {
         width: 100%;
     }
-    
+
     .playlist-tabs {
         flex: 1;
     }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.anilist-searching {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#anilistSpinner {
+    display: none;
+    margin-left: 10px;
+    width: 16px;
+    height: 16px;
+    border: 3px solid #ccc;
+    border-top-color: #007bff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+#anilistStatus {
+    margin-top: 6px;
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+#anilistError {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    background: #ff4d4d20;
+    border: 1px solid #ff4d4d;
+    color: #ffb3b3;
+    font-size: 14px;
+}
+
+#anilistSearchButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #6c757d !important; /* muted gray */
+    border-color: #6c757d !important;
+    color: #e2e2e2 !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+#username:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #2a2a2a !important;
+    color: #bfbfbf !important;
 }

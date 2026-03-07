@@ -1217,3 +1217,232 @@ function init() {
 }
 
 init();
+
+// AniList + anisongdb (experimental)
+
+function showError(msg) {
+    const box = document.getElementById("anilistError");
+    box.textContent = msg;
+    box.style.display = "block";
+    setTimeout(() => {
+        box.style.display = "none";
+        box.textContent = "";
+    }, 3000);
+}
+
+function clearError() {
+    const box = document.getElementById("anilistError");
+    box.textContent = "";
+    box.style.display = "none";
+}
+
+function setLoading(isLoading, message = "") {
+    const btn = document.getElementById("anilistSearchButton");
+    const spinner = document.getElementById("anilistSpinner");
+    const status = document.getElementById("anilistStatus");
+    const input = document.getElementById("username");
+
+    if (isLoading) {
+        clearError();
+        btn.disabled = true;
+        input.disabled = true;
+        spinner.style.display = "inline-block";
+        status.textContent = message;
+    } else {
+        btn.disabled = false;
+        input.disabled = false;
+        spinner.style.display = "none";
+        status.textContent = "";
+    }
+}
+
+function updateStatus(msg) {
+    const status = document.getElementById("anilistStatus");
+    status.textContent = msg;
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function chunkArray(arr, size) {
+    const chunks = [];
+    for (let i = 0; i < arr.length; i += size) {
+        chunks.push(arr.slice(i, i + size));
+    }
+    return chunks;
+}
+
+const anilistPageCache = {};
+
+async function fetchAnilistPage(username, page, maxRetries = 3) {
+    if (anilistPageCache[page]) return anilistPageCache[page];
+
+    const query = `
+        query ($name: String, $page: Int) {
+            Page(page: $page, perPage: 50) {
+                mediaList(userName: $name, type: ANIME) {
+                    media { idMal }
+                }
+                pageInfo { hasNextPage }
+            }
+        }
+    `;
+
+    let attempts = 0;
+
+    while (attempts < maxRetries) {
+        try {
+            updateStatus(`AniList: Fetching page ${page}...`);
+
+            const response = await fetch("https://graphql.anilist.co", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query, variables: { name: username, page } })
+            });
+
+            if (response.status === 404 || response.status === 500) {
+                throw new Error("AniList user not found (404).");
+            }
+
+            if (!response.ok) {
+                attempts++;
+                updateStatus(`AniList error ${response.status}. Retrying in 60s...`);
+                await sleep(60000);
+                continue;
+            }
+
+            const json = await response.json();
+
+            if (json.errors) {
+                const isUserNotFound = json.errors.some(e =>
+                    e.message && e.message.toLowerCase().includes("not found")
+                );
+
+                if (isUserNotFound) {
+                    throw new Error("AniList user not found.");
+                }
+
+                attempts++;
+                updateStatus(`AniList returned errors. Retrying in 60s...`);
+                await sleep(60000);
+                continue;
+            }
+
+            anilistPageCache[page] = json;
+
+            await sleep(1000);
+
+            return json;
+
+        } catch (err) {
+            if (err.message.includes("not found")) {
+                throw err;
+            }
+
+            attempts++;
+            updateStatus(`AniList returned errors. Retrying in 60s...`);
+            await sleep(60000);
+        }
+    }
+
+    throw new Error(`AniList failed after ${maxRetries} retries on page ${page}.`);
+}
+
+async function getMalIdsFromAnilist(username) {
+    let page = 1;
+    const malIds = [];
+
+    while (true) {
+        const json = await fetchAnilistPage(username, page);
+        const data = json.data.Page;
+
+        for (const entry of data.mediaList) {
+            if (entry.media.idMal) {
+                malIds.push(entry.media.idMal);
+            }
+        }
+
+        if (!data.pageInfo.hasNextPage) break;
+        page++;
+    }
+
+    for (const key in anilistPageCache) delete anilistPageCache[key];
+
+    return malIds;
+}
+
+async function getSongListFromMalIds(malIds) {
+    const url = "https://anisongdb.com/api/mal_ids_request";
+    const chunks = chunkArray(malIds, 500);
+    const allSongs = [];
+
+    for (let i = 0; i < chunks.length; i++) {
+        updateStatus(`AnisongDB: Fetching batch ${i + 1}/${chunks.length}...`);
+
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mal_ids: chunks[i] })
+        });
+
+        if (!response.ok) {
+            throw new Error(`AnisongDB error ${response.status} on batch ${i + 1}`);
+        }
+
+        const json = await response.json();
+        if (Array.isArray(json)) allSongs.push(...json);
+    }
+
+    return allSongs;
+}
+
+document.getElementById("anilistSearchButton").addEventListener("click", async () => {
+    const username = document.getElementById("username").value.trim();
+    if (!username) {
+        showError("Please enter a username.");
+        return;
+    }
+
+    allSongs = [];
+    filteredSongs = [];
+    currentIndex = -1;
+    shuffleHistory = [];
+    shuffleFuture = [];
+    lastAnnSongIdBeforeFilter = null;
+
+    setLoading(true, "Starting AniList import...");
+
+    try {
+        updateStatus("Fetching MAL IDs...");
+        const malIds = await getMalIdsFromAnilist(username);
+
+        if (malIds.length === 0) {
+            showError("No anime found for this AniList user.");
+            setLoading(false);
+            return;
+        }
+
+        updateStatus("Fetching songs from AnisongDB...");
+        const songs = await getSongListFromMalIds(malIds);
+
+        const normalized = detectAndNormalizeJson(songs);
+        mergeSongs(normalized);
+        applyFilters();
+
+        updateStatus("Done!");
+
+    } catch (err) {
+        console.error(err);
+        showError("Failed to load songs: " + err.message);
+    }
+
+    setLoading(false);
+});
+
+document.getElementById("username").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        document.getElementById("anilistSearchButton").click();
+    }
+});

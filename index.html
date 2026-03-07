@@ -246,6 +246,20 @@
       </div>
 
       <div class="settings-section">
+        <div class="settings-section-title">AniList (Experimental)</div>
+        <div class="settings-row">
+          <label class="settings-label" for="username">Username</label>
+          <input type="text" name="username" id="username" class="playlist-search-input" placeholder="ex: estee">
+          <button type="button" id="anilistSearchButton" class="btn btn-primary">Search</button>
+        </div>
+        <div class="anilist-searching">
+          <span id="anilistSpinner"></span>
+          <div id="anilistStatus"></div>
+        </div>
+        <div id="anilistError"></div>
+      </div>
+
+      <div class="settings-section">
         <div class="settings-section-title">Shortcuts</div>
         <div class="shortcuts-text">
           ← / →: Previous / Next song
