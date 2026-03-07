@@ -8,7 +8,6 @@
     --text-soft: #b3b3c2;
     --danger: #ff4b4b;
     --success: #4bff9a;
-    --warning: #ffc94b;
     --radius-lg: 12px;
     --radius-md: 8px;
     --radius-sm: 8px;
@@ -167,7 +166,7 @@ body {
     background: #181818;
     border-radius: var(--radius-lg);
     border: 1px solid var(--glass-border);
-    padding: 12px 12px 10px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -200,12 +199,6 @@ audio {
     text-align: center;
     color: var(--text-soft);
     font-size: 14px;
-}
-
-.media-placeholder strong {
-    display: block;
-    margin-bottom: 4px;
-    color: var(--warning);
 }
 
 .song-info {
@@ -338,7 +331,7 @@ audio {
     background: #181818;
     border-radius: var(--radius-lg);
     border: 1px solid var(--glass-border);
-    padding: 10px 10px 8px;
+    padding: 8px 10px;
     display: flex;
     flex-direction: column;
     gap: 8px;

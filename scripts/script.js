@@ -701,6 +701,8 @@ function updatePlaylist() {
                 s.animeRomaji,
                 s.songName,
                 s.artist,
+                s.composer,
+                s.arranger,
                 s.annSongId,
             ]
                 .filter(Boolean)
@@ -779,8 +781,33 @@ function updatePlaylist() {
 
         removeBtn.addEventListener("click", (e) => {
             e.stopPropagation();
-            allSongs = allSongs.filter((s) => s.annSongId !== song.annSongId);
+
+            const removedId = song.annSongId;
+            const wasCurrent = filteredSongs[currentIndex]?.annSongId === removedId;
+
+            // Determine next index BEFORE removing
+            let nextIndex = currentIndex;
+            if (wasCurrent) {
+                nextIndex = currentIndex; // next song will shift into this index
+            }
+
+            // Remove the song
+            allSongs = allSongs.filter((s) => s.annSongId !== removedId);
+
+            // Reapply filters
             applyFilters();
+
+            // If the removed song was the current one, move to the next
+            if (wasCurrent) {
+                if (nextIndex >= filteredSongs.length) {
+                    nextIndex = 0;
+                }
+                if (nextIndex >= 0) {
+                    currentIndex = nextIndex;
+                    lastAnnSongIdBeforeFilter = filteredSongs[currentIndex].annSongId;
+                    updateSongDisplay(true);
+                }
+            }
         });
 
         playlistList.appendChild(item);
